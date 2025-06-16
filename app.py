@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, jsonify
 import networkx as nx
-import os  # ← Agregado para obtener el puerto desde la variable de entorno
 
 app = Flask(__name__)
 
@@ -41,6 +40,7 @@ def calcular_ruta():
     mensaje = "Se usa distancia Manhattan para trayectos cortos y Euclidiana (Dijkstra) para largos."
 
     return jsonify({"ruta": ruta_optima, "mensaje": mensaje})
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))  # ← Render asigna este puerto
