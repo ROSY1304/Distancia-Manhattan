@@ -96,6 +96,7 @@ filelock @ file:///work/perseverance-python-buildout/croot/filelock_170173399313
 flake8 @ file:///croot/flake8_1708965256870/work
 Flask==3.1.0
 flask-cors==5.0.1
+Flask-JWT-Extended==4.7.1
 folium==0.19.7
 fonttools @ file:///croot/fonttools_1713551344105/work
 fqdn==1.5.1
