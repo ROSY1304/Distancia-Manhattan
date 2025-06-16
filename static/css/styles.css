@@ -1,0 +1,114 @@
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to bottom, #fce4ec, #e3f2fd);
+}
+
+/* Área de entradas */
+#entradas {
+    padding: 16px;
+    background: #fde0e0;
+    border-bottom: 2px solid #d1c4e9;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Agrupaciones de inputs */
+.grupo-entrada {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.grupo-entrada input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ce93d8;
+    border-radius: 10px;
+    background: #fff0f6;
+    font-size: 1rem;
+    color: #6a1b9a;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Botones y select */
+.grupo-entrada button,
+.grupo-entrada select {
+    padding: 8px 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    background-color: #d1c4e9;
+    color: #4a148c;
+    font-weight: 500;
+    transition: background 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.grupo-entrada button:hover,
+.grupo-entrada select:hover {
+    background-color: #b39ddb;
+    transform: scale(1.03);
+}
+
+/* Estilo del mapa */
+#mapa {
+    flex: 1;
+    border: 3px solid #ce93d8;
+    border-radius: 15px;
+    margin: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Área de resultados */
+#resultados {
+    padding: 14px;
+    background: #fce4ec;
+    border-top: 2px solid #d1c4e9;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 20px;
+    font-weight: 600;
+    color: #4a148c;
+    text-align: center;
+    font-size: 1rem;
+}
+
+/* Lista de puntos */
+#listaPuntos {
+    background: #fff4fa;
+    padding: 10px 20px;
+    border-top: 1px solid #f8bbd0;
+    color: #6a1b9a;
+}
+
+#ordenPuntos li {
+    margin-bottom: 5px;
+    list-style: decimal inside;
+}
+
+/* Responsive */
+@media screen and (max-width: 600px) {
+    .grupo-entrada {
+        flex-direction: column;
+    }
+
+    #resultados {
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.95rem;
+        gap: 8px;
+    }
+
+    .grupo-entrada button,
+    .grupo-entrada select {
+        width: 100%;
+    }
+}

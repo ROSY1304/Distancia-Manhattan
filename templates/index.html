@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mapa de Rutas</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+<style>
+:root {
+  --rosa-claro:#f8cbd9; --rosa-medio:#ef8aa0; --rosa-fuerte:#e25c7b;
+  --verde-claro:#ccebd9; --verde-medio:#8ac6a3; --verde-fuerte:#4a866f;
+  --fondo-general:#fff0f5; --texto-principal:#4a4a4a;
+}
+body {
+  display:flex; flex-direction:column; height:100vh; margin:0;
+  background:var(--fondo-general); color:var(--texto-principal);
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+#entradas {
+  padding:15px; background:var(--rosa-claro); border-bottom:2px solid var(--rosa-fuerte);
+  display:flex; flex-direction:column; gap:10px;
+  box-shadow:0 2px 8px rgba(226,92,123,0.3);
+}
+.grupo-entrada {
+  display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+}
+.grupo-entrada input {
+  flex:1; padding:8px 12px; border:2px solid var(--rosa-medio); border-radius:8px; font-size:1rem;
+  transition:border-color 0.3s ease;
+}
+.grupo-entrada input:focus {
+  border-color:var(--verde-fuerte); outline:none; background:#fff;
+}
+.btn-primary, .btn-danger, .btn-warning, .btn-success {
+  border:none; padding:8px 18px; border-radius:10px; box-shadow:0 3px 6px rgba(0,0,0,0.2); color:#fff;
+  transition:background 0.3s ease;
+}
+.btn-primary {background:linear-gradient(45deg,var(--rosa-fuerte),var(--rosa-medio));box-shadow:0 3px 6px rgba(226,92,123,0.5);}
+.btn-primary:hover {background:linear-gradient(45deg,var(--rosa-medio),var(--rosa-fuerte));}
+.btn-danger {background:linear-gradient(45deg,#f4727f,#f57b83);}
+.btn-danger:hover {background:linear-gradient(45deg,#f57b83,#f4727f);}
+.btn-warning {background:linear-gradient(45deg,#f9b5c0,#f7a1b1); color:#4a4a4a;}
+.btn-warning:hover {background:linear-gradient(45deg,#f7a1b1,#f9b5c0);}
+.btn-success {background:linear-gradient(45deg,var(--verde-fuerte),var(--verde-medio));}
+.btn-success:hover {background:linear-gradient(45deg,var(--verde-medio),var(--verde-fuerte));}
+#mapa {
+  flex:1; border-top:4px solid var(--verde-fuerte); border-bottom:4px solid var(--rosa-fuerte);
+  box-shadow:0 0 10px rgba(226,92,123,0.4);
+}
+#resultados {
+  padding:12px 20px; background:var(--rosa-fuerte); border-top:3px solid var(--verde-fuerte);
+  display:flex; gap:12px; justify-content:space-between; color:#fff; font-weight:600; font-size:1.1rem;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.15);
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+@media(max-width:480px) {
+  #resultados {flex-wrap:wrap; font-size:1rem;}
+}
+#listaPuntos {
+  padding:10px 20px; background:var(--verde-claro); border-bottom:2px solid var(--verde-fuerte);
+  color:var(--verde-fuerte); font-weight:600; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+#listaPuntos p {margin-bottom:6px; font-size:1.1rem;}
+#ordenPuntos li {margin-bottom:3px; font-size:0.95rem;}
+.modal-content {
+  border-radius:15px; border:3px solid var(--rosa-medio);
+  box-shadow:0 8px 24px rgba(226,92,123,0.5);
+}
+.modal-header {
+  background:var(--rosa-fuerte); color:#fff; border-bottom:2px solid var(--rosa-medio);
+  border-top-left-radius:15px; border-top-right-radius:15px;
+}
+.modal-footer { border-top:2px solid var(--rosa-medio); }
+.btn-close { filter: invert(1); opacity:0.8; }
+.btn-close:hover { opacity:1; }
+.ui-autocomplete {
+  max-height:150px; overflow-y:auto; overflow-x:hidden; background:#fff;
+  border:1px solid var(--rosa-medio); border-radius:8px;
+  box-shadow:0 3px 8px rgba(226,92,123,0.3); font-size:0.9rem;
+}
+.ui-menu-item-wrapper { padding:6px 12px; cursor:pointer; }
+.ui-menu-item-wrapper.ui-state-active {
+  background:var(--rosa-medio); color:#fff;
+}
+#mensaje {
+  margin: 10px 20px; padding: 10px;
+  border-radius: 8px; background-color: var(--verde-claro); color: var(--verde-fuerte);
+  font-weight: bold; box-shadow: 0 2px 8px rgba(74, 134, 111, 0.2);
+  display: none; text-align: center;
+}
+
+/* Cuadro de indicaciones rosita */
+.leaflet-routing-container {
+  background-color: #f8c1cd !important;
+  border: 2px solid #e25c7b !important;
+  border-radius: 10px !important;
+  color: #5a1e2a !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(226, 92, 123, 0.4);
+}
+.leaflet-routing-alt {
+  background-color: #fce4ec !important;
+}
+</style>
+</head>
+<body>
+  <div id="entradas">
+    <div class="grupo-entrada">
+      <input type="text" class="entrada-ubicacion form-control" placeholder="Ingrese el nombre del sitio a seleccionar" />
+      <button class="btn btn-primary" onclick="agregarRuta()">Agregar Ruta</button>
+      <button class="btn btn-danger" onclick="borrarPuntos()">Borrar todos los puntos</button>
+      <button class="btn btn-warning" onclick="borrarUltimoPunto()">Borrar último punto</button>
+    </div>
+    <div class="grupo-entrada">
+      <input type="text" id="input-coordenadas" placeholder="Ingresa coordenadas (lat, lon)">
+      <button class="btn btn-primary" onclick="agregarCoordenadas()">Agregar por coordenadas</button>
+    </div>
+    <div class="grupo-entrada">
+      <button class="btn btn-success" onclick="activarSeleccionMapa()">Seleccionar sitio desde el mapa</button>
+    </div>
+  </div>
+
+  <div id="mensaje"></div>
+  <div id="mapa"></div>
+  <div id="resultados">
+    <div id="distancia"></div>
+    <div id="gasolina"></div>
+    <div id="costo"></div>
+  </div>
+  <div id="listaPuntos" class="d-none">
+    <p>Coordenadas</p>
+    <ol id="ordenPuntos"></ol>
+  </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+<script>
+let mapa = L.map('mapa').setView([19.9561, -99.5307], 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(mapa);
+let controlRuta, puntosIntermedios = [], marcadores = [], seleccionMapaHabilitada = false;
+
+function mostrarMensaje(texto, tipo) {
+  const div = document.getElementById('mensaje');
+  div.textContent = texto;
+  div.style.display = 'block';
+  div.style.backgroundColor = tipo === 'error' ? '#f8d7da' :
+                             tipo === 'exito' ? '#d4edda' :
+                             tipo === 'info' ? '#cce5ff' : '#fff';
+  div.style.color = tipo === 'error' ? '#721c24' :
+                    tipo === 'exito' ? '#155724' :
+                    tipo === 'info' ? '#004085' : '#000';
+  setTimeout(() => { div.style.display = 'none'; }, 4000);
+}
+
+function agregarRuta() {
+  let texto = $('.entrada-ubicacion').val().trim();
+  if (!texto) return mostrarMensaje('Por favor, ingresa un nombre válido.', 'error');
+  $.getJSON(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(texto)}`, function(datos) {
+    if (datos?.length) {
+      let latlng = [parseFloat(datos[0].lat), parseFloat(datos[0].lon)];
+      puntosIntermedios.push(L.latLng(latlng));
+      let marcador = L.marker(latlng).addTo(mapa).bindPopup(texto).openPopup();
+      marcadores.push(marcador);
+      $('.entrada-ubicacion').val('');
+      actualizarRuta();
+      mostrarMensaje(`Ruta agregada: ${texto}`, 'exito');
+    } else {
+      mostrarMensaje('Ubicación no encontrada. Intente con otro nombre.', 'error');
+    }
+  });
+}
+
+function agregarCoordenadas() {
+  let texto = document.getElementById("input-coordenadas").value.trim();
+  let partes = texto.split(',');
+  if (partes.length !== 2) return mostrarMensaje('Formato incorrecto. Usa: lat, lon', 'error');
+  let lat = parseFloat(partes[0]);
+  let lon = parseFloat(partes[1]);
+  if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) return mostrarMensaje('Coordenadas inválidas.', 'error');
+  let latlng = L.latLng(lat, lon);
+  puntosIntermedios.push(latlng);
+  let marcador = L.marker(latlng).addTo(mapa).bindPopup(`(${lat.toFixed(5)}, ${lon.toFixed(5)})`).openPopup();
+  marcadores.push(marcador);
+  mapa.setView(latlng, 10);
+  document.getElementById("input-coordenadas").value = '';
+  actualizarRuta();
+  mostrarMensaje('Coordenadas agregadas correctamente.', 'exito');
+}
+
+function actualizarRuta() {
+  if (controlRuta) mapa.removeControl(controlRuta);
+  if (puntosIntermedios.length > 1) {
+    controlRuta = L.Routing.control({
+      waypoints: puntosIntermedios,
+      routeWhileDragging: true,
+      showAlternatives: true,
+      altLineOptions: { styles: [{ color: 'black', opacity: 0.15, weight: 9 }] },
+      language: 'es',
+      formatter: new L.Routing.Formatter({
+        language: 'es'
+      }),
+      router: L.Routing.osrmv1({
+        serviceUrl: 'https://router.project-osrm.org/route/v1'
+      }),
+      createMarker: function(i, wp, n) {
+        return L.marker(wp.latLng).bindPopup(`Punto ${i + 1}`);
+      },
+      plan: L.Routing.plan(puntosIntermedios, {
+        createMarker: function(i, wp) {
+          return L.marker(wp.latLng).bindPopup(`Punto ${i + 1}`);
+        }
+      }),
+    }).addTo(mapa);
+
+    controlRuta.on('routesfound', function(e) {
+      // Aquí podrías traducir instrucciones, pero LRM ya maneja idioma en español con 'language' y 'formatter'
+    });
+  }
+  actualizarResultados();
+  actualizarListaPuntos();
+}
+
+function borrarPuntos() {
+  puntosIntermedios = [];
+  marcadores.forEach(m => mapa.removeLayer(m));
+  marcadores = [];
+  if (controlRuta) mapa.removeControl(controlRuta);
+  controlRuta = null;
+  $('#listaPuntos').addClass('d-none');
+  $('#distancia, #gasolina, #costo').text('');
+  mostrarMensaje('Se borraron todos los puntos.', 'exito');
+}
+
+function borrarUltimoPunto() {
+  if (!puntosIntermedios.length) return mostrarMensaje('No hay puntos para borrar.', 'error');
+  mapa.removeLayer(marcadores.pop());
+  puntosIntermedios.pop();
+  actualizarRuta();
+  mostrarMensaje('Último punto borrado.', 'exito');
+}
+
+function activarSeleccionMapa() {
+  seleccionMapaHabilitada = true;
+  mostrarMensaje('Haz clic en el mapa para seleccionar un punto.', 'info');
+}
+
+mapa.on('click', function(e) {
+  if (seleccionMapaHabilitada) {
+    puntosIntermedios.push(e.latlng);
+    let marcador = L.marker(e.latlng).addTo(mapa).bindPopup(`Punto seleccionado`).openPopup();
+    marcadores.push(marcador);
+    actualizarRuta();
+    seleccionMapaHabilitada = false;
+    mostrarMensaje('Punto seleccionado desde el mapa.', 'exito');
+  }
+});
+
+function actualizarResultados() {
+  if (!controlRuta) return $('#distancia, #gasolina, #costo').text('');
+  controlRuta.on('routesfound', function(e) {
+    let ruta = e.routes[0];
+    let km = ruta.summary.totalDistance / 1000;
+    let litros = km * 0.08;
+    let costo = litros * 22;
+    $('#distancia').text(`Distancia: ${km.toFixed(2)} km`);
+    $('#gasolina').text(`Gasolina: ${litros.toFixed(2)} litros`);
+    $('#costo').text(`Costo: $${costo.toFixed(2)}`);
+  });
+}
+
+function actualizarListaPuntos() {
+  if (!puntosIntermedios.length) return $('#listaPuntos').addClass('d-none');
+  $('#listaPuntos').removeClass('d-none');
+  let ol = $('#ordenPuntos');
+  ol.empty();
+  puntosIntermedios.forEach((p, i) => ol.append(`<li>Lat: ${p.lat.toFixed(6)}, Lon: ${p.lng.toFixed(6)}</li>`));
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
